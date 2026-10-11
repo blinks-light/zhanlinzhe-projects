@@ -1,0 +1,38 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+
+# MLflow local tracking
+mlruns/
+mlartifacts/
+
+# DVC local configuration and cache (SAS token lives in config.local)
+.dvc/config.local
+.dvc/tmp/
+.dvc/cache/
+.dvc/plots/
+.dvc-site-cache/
+.tmp/
+
+# Raw data is tracked by DVC, not Git
+data/*.csv
+
+# DVC temporary directories created in the repository root
+tmp*/
+
+# Operating system and editor files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

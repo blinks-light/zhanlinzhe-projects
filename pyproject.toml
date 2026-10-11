@@ -1,0 +1,20 @@
+[project]
+name = "email-cascade-classifier"
+version = "1.0.0"
+description = "Two-stage email spam and category classifier served with FastAPI"
+requires-python = ">=3.11"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+exclude = [".venv", "mlruns", "data"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP"]
+# Long email templates in ml/data_pipeline.py are kept on one line for readability.
+ignore = ["E501"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = "-ra"
