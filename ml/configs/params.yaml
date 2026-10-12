@@ -1,0 +1,15 @@
+tfidf:
+  max_features: 3000
+  ngram_range: [1, 2]
+  min_df: 1
+  sublinear_tf: true
+  stop_words: english
+
+nb:
+  alpha: 0.5
+
+lr:
+  C: 2.0
+  class_weight: balanced
+  max_iter: 1000
+  solver: lbfgs
