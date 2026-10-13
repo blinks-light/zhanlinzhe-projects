@@ -21,8 +21,8 @@ sub-categories.
 
 | Version | Rows | spam | work | personal | notification | Tag | Commit |
 |---|---|---|---|---|---|---|---|
-| v1 | 100 | 30 | 26 | 22 | 22 | `data-v1` | `DATASET_V1_COMMIT` |
-| v2 | 102 | 26 | 28 | 22 | 26 | `data-v2` | `DATASET_V2_COMMIT` |
+| v1 | 100 | 30 | 26 | 22 | 22 | `data-v1` | `89a62aa` |
+| v2 | 102 | 26 | 28 | 22 | 26 | `data-v2` | `f82bfe4` |
 
 ### What changed from v1 to v2
 

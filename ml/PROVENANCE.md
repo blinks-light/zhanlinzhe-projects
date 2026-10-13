@@ -4,8 +4,8 @@ This file links each production model back to the code, data and MLflow run that
 
 | Stage | Dataset | Dataset commit | Git tag | MLflow run | Artifact |
 |---|---|---|---|---|---|
-| Baseline (MultinomialNB) | v1 | `DATASET_V1_COMMIT` | `data-v1` | `baseline-nb` | not exported (experiment only) |
-| Improved (LogisticRegression) | v2 | `DATASET_V2_COMMIT` | `data-v2` | `improved-lr` | `artifacts/spam_model.joblib`, `artifacts/normal_model.joblib` |
+| Baseline (MultinomialNB) | v1 | `89a62aa` | `data-v1` | `baseline-nb` | not exported (experiment only) |
+| Improved (LogisticRegression) | v2 | `f82bfe4` | `data-v2` | `improved-lr` | `artifacts/spam_model.joblib`, `artifacts/normal_model.joblib` |
 
 ## How the chain is verified
 
