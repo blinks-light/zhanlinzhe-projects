@@ -1,0 +1,24 @@
+{
+  "run_name": "baseline-nb",
+  "run_id": "cc4a654ad08f43d6a227a3a7a0ee67fd",
+  "model": "nb",
+  "git_sha": "db3ac5b",
+  "data_version": "758a2f51b196173c3af2f30f0f2df187.dir",
+  "params": {
+    "model": "nb",
+    "tfidf_max_features": 3000,
+    "tfidf_ngram_range": "(1, 2)",
+    "tfidf_min_df": 1,
+    "test_size": 0.2,
+    "random_state": 42,
+    "nb_alpha": 0.5
+  },
+  "metrics": {
+    "spam_accuracy": 0.8,
+    "spam_f1": 0.5,
+    "normal_accuracy": 0.42857142857142855,
+    "normal_f1_macro": 0.4444444444444444,
+    "cascade_accuracy": 0.4,
+    "cascade_f1_macro": 0.41303418803418807
+  }
+}
