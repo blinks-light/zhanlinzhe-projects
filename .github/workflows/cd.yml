@@ -1,0 +1,37 @@
+name: CD
+
+on:
+  push:
+    branches: [staging, main]
+
+permissions:
+  contents: read
+
+jobs:
+  staging:
+    name: Build staging image
+    if: github.ref == 'refs/heads/staging'
+    runs-on: ubuntu-latest
+    environment: staging
+    steps:
+      - uses: actions/checkout@v4
+      - name: Create staging environment file
+        run: echo "${{ secrets.STAGING_ENV_FILE }}" > .env
+      - name: Build staging image
+        run: docker build --build-arg APP_ENV=staging -t email-cascade-classifier:staging .
+      - name: Show image digest
+        run: docker image inspect email-cascade-classifier:staging --format '{{.Id}}'
+
+  production:
+    name: Build production image
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+      - name: Create production environment file
+        run: echo "${{ secrets.PROD_ENV_FILE }}" > .env
+      - name: Build production image
+        run: docker build --build-arg APP_ENV=production -t email-cascade-classifier:prod .
+      - name: Show image digest
+        run: docker image inspect email-cascade-classifier:prod --format '{{.Id}}'
