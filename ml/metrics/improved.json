@@ -1,0 +1,27 @@
+{
+  "run_name": "improved-lr",
+  "run_id": "63173e4cd0804cc39371372dafef1073",
+  "model": "lr",
+  "git_sha": "fb84b43",
+  "data_version": "6d6d31e92419f0e14ce657b3a47f626a.dir",
+  "params": {
+    "model": "lr",
+    "tfidf_max_features": 3000,
+    "tfidf_ngram_range": "(1, 2)",
+    "tfidf_min_df": 1,
+    "test_size": 0.2,
+    "random_state": 42,
+    "lr_C": 2.0,
+    "lr_class_weight": "balanced",
+    "lr_max_iter": 1000,
+    "lr_solver": "lbfgs"
+  },
+  "metrics": {
+    "spam_accuracy": 0.9047619047619048,
+    "spam_f1": 0.75,
+    "normal_accuracy": 0.625,
+    "normal_f1_macro": 0.6369463869463869,
+    "cascade_accuracy": 0.6190476190476191,
+    "cascade_f1_macro": 0.6446969696969697
+  }
+}
