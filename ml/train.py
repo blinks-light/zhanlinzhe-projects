@@ -201,3 +201,5 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+def _broken_helper() -> None:
+    return undefined_symbol
