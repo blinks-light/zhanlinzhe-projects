@@ -63,7 +63,6 @@ def data_version() -> str:
 
 
 def load_params() -> dict[str, Any]:
-    """Load the TF-IDF and model hyperparameters from params.yaml."""
     return yaml.safe_load(PARAMS_FILE.read_text(encoding="utf-8"))
 
 
