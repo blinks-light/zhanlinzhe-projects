@@ -8,13 +8,17 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 
 import joblib
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
 
 from app.schemas import PredictionResponse, PredictRequest
 
 logger = logging.getLogger(__name__)
 
-ARTIFACT_DIR = Path(__file__).resolve().parent.parent / "artifacts"
+APP_DIR = Path(__file__).resolve().parent
+ARTIFACT_DIR = APP_DIR.parent / "artifacts"
+templates = Jinja2Templates(directory=str(APP_DIR / "templates"))
 
 
 @asynccontextmanager
@@ -37,6 +41,12 @@ app = FastAPI(
     version="1.0.0",
     lifespan=lifespan,
 )
+
+
+@app.get("/", response_class=HTMLResponse, include_in_schema=False)
+def index(request: Request):
+    """Serve the single-page demo UI."""
+    return templates.TemplateResponse(request=request, name="index.html")
 
 
 @app.get("/health")

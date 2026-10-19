@@ -1,0 +1,545 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>智能邮件分类器 · Email Cascade Classifier</title>
+  <style>
+    :root {
+      --ink: #0f172a;
+      --muted: #64748b;
+      --line: #e2e8f0;
+      --card: #ffffff;
+      --brand: #4f46e5;
+      --brand-2: #7c3aed;
+      --spam: #dc2626;
+      --ok: #059669;
+      --radius: 22px;
+    }
+
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+    html, body { margin: 0; min-height: 100%; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+        "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(1100px 520px at 8% -8%, #e0e7ff 0%, rgba(224, 231, 255, 0) 60%),
+        radial-gradient(900px 480px at 102% 6%, #fae8ff 0%, rgba(250, 232, 255, 0) 55%),
+        #f5f7fc;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      padding: 32px 20px 48px;
+    }
+
+    .shell {
+      width: min(780px, 100%);
+      display: flex;
+      flex-direction: column;
+      gap: 22px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .brand { display: flex; align-items: center; gap: 12px; }
+
+    .brand-mark {
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
+      display: grid;
+      place-items: center;
+      font-size: 21px;
+      color: #fff;
+      background: linear-gradient(135deg, var(--brand), var(--brand-2));
+      box-shadow: 0 10px 20px -10px rgba(79, 70, 229, 0.8);
+    }
+
+    .brand-text { display: flex; flex-direction: column; line-height: 1.2; }
+    .brand-text strong { font-size: 15px; letter-spacing: -0.01em; }
+    .brand-text small { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+    .docs-link {
+      font-size: 13px;
+      color: #475569;
+      text-decoration: none;
+      padding: 8px 14px;
+      border-radius: 999px;
+      border: 1px solid rgba(226, 232, 240, 0.9);
+      background: rgba(255, 255, 255, 0.7);
+      transition: border-color 0.15s ease, color 0.15s ease;
+    }
+    .docs-link:hover { color: var(--brand); border-color: #c7d2fe; }
+
+    .hero { padding: 6px 2px 0; }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: #eef2ff;
+      color: #4338ca;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+    }
+
+    .hero h1 {
+      margin: 14px 0 10px;
+      font-size: clamp(30px, 5vw, 44px);
+      line-height: 1.12;
+      letter-spacing: -0.03em;
+    }
+
+    .grad {
+      background: linear-gradient(120deg, #4f46e5, #9333ea 55%, #db2777);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .cascade {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 20px;
+      flex-wrap: wrap;
+    }
+
+    .cascade-step {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.72);
+      border: 1px solid rgba(226, 232, 240, 0.9);
+      box-shadow: 0 14px 30px -26px rgba(15, 23, 42, 0.5);
+    }
+
+    .step-index {
+      font-size: 10.5px;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      color: #4f46e5;
+      background: #eef2ff;
+      padding: 4px 7px;
+      border-radius: 8px;
+    }
+    .step-index.rose { color: #be123c; background: #ffe4e6; }
+    .step-index.green { color: #047857; background: #d1fae5; }
+
+    .cascade-step strong { display: block; font-size: 13px; letter-spacing: -0.01em; }
+    .cascade-step small { display: block; margin-top: 1px; font-size: 11.5px; color: var(--muted); }
+    .cascade-arrow { color: #cbd5e1; font-size: 15px; }
+
+    .card {
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(226, 232, 240, 0.9);
+      border-radius: var(--radius);
+      padding: 24px;
+      box-shadow: 0 30px 60px -38px rgba(15, 23, 42, 0.45);
+    }
+
+    .field-head {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+
+    .field-head label { font-size: 13px; font-weight: 600; color: #334155; }
+    .counter { font-size: 12px; color: #94a3b8; font-variant-numeric: tabular-nums; }
+
+    textarea {
+      width: 100%;
+      min-height: 190px;
+      resize: vertical;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 16px 18px;
+      font: inherit;
+      font-size: 15px;
+      line-height: 1.65;
+      color: var(--ink);
+      background: #fbfcff;
+      outline: none;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+    }
+    textarea::placeholder { color: #a8b3c7; }
+    textarea:focus {
+      border-color: #a5b4fc;
+      background: #fff;
+      box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.12);
+    }
+
+    .samples {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .samples-label { font-size: 12.5px; color: #94a3b8; }
+
+    .chip {
+      border: 1px solid var(--line);
+      background: #fff;
+      color: #475569;
+      border-radius: 999px;
+      padding: 7px 12px;
+      font-size: 12.5px;
+      cursor: pointer;
+      transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
+    }
+    .chip:hover { border-color: #c7d2fe; color: var(--brand); background: #eef2ff; }
+
+    .primary {
+      margin-top: 18px;
+      width: 100%;
+      padding: 15px 20px;
+      border: 0;
+      border-radius: 14px;
+      color: #fff;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      background: linear-gradient(135deg, var(--brand), var(--brand-2));
+      box-shadow: 0 14px 28px -14px rgba(79, 70, 229, 0.65);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+    }
+    .primary:hover { transform: translateY(-1px); box-shadow: 0 20px 34px -16px rgba(79, 70, 229, 0.75); }
+    .primary:active { transform: translateY(0); }
+    .primary:disabled { opacity: 0.78; cursor: progress; }
+
+    .spinner {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      border: 2px solid rgba(255, 255, 255, 0.45);
+      border-top-color: #fff;
+      display: none;
+      animation: spin 0.8s linear infinite;
+    }
+    .primary.loading .spinner { display: block; }
+
+    .error {
+      margin: 14px 0 0;
+      padding: 11px 14px;
+      border-radius: 12px;
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      color: #b91c1c;
+      font-size: 13.5px;
+      line-height: 1.5;
+    }
+
+    .result {
+      display: flex;
+      gap: 18px;
+      padding: 22px;
+      border-radius: var(--radius);
+      background: #fff;
+      border: 1px solid var(--line);
+      border-left: 6px solid var(--brand);
+      box-shadow: 0 24px 50px -34px rgba(15, 23, 42, 0.4);
+      animation: rise 0.35s ease both;
+    }
+    .result.spam { border-left-color: var(--spam); }
+    .result.normal { border-left-color: var(--ok); }
+
+    .result-icon {
+      flex: none;
+      width: 54px;
+      height: 54px;
+      border-radius: 16px;
+      display: grid;
+      place-items: center;
+      font-size: 25px;
+      background: #eef2ff;
+    }
+    .result.spam .result-icon { background: #fee2e2; }
+    .result.normal .result-icon { background: #d1fae5; }
+
+    .result-main { min-width: 0; }
+
+    .kicker {
+      font-size: 11px;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .result h2 {
+      margin: 4px 0 6px;
+      font-size: 26px;
+      letter-spacing: -0.02em;
+    }
+    .result.spam h2 { color: #b91c1c; }
+    .result.normal h2 { color: #047857; }
+
+    .result p { margin: 0 0 10px; color: var(--muted); font-size: 14px; line-height: 1.6; }
+
+    .result code {
+      display: inline-block;
+      background: #f1f5f9;
+      padding: 6px 10px;
+      border-radius: 8px;
+      font-size: 12px;
+      color: #334155;
+      word-break: break-all;
+    }
+
+    .foot {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 0 4px;
+      color: #94a3b8;
+      font-size: 12.5px;
+    }
+    .foot a { color: #64748b; text-decoration: none; }
+    .foot a:hover { color: var(--brand); }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes rise {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 560px) {
+      body { padding: 20px 12px 32px; }
+      .card { padding: 18px; }
+      .result { flex-direction: column; }
+      .foot { flex-direction: column; align-items: flex-start; }
+      .cascade { gap: 8px; }
+      .cascade-arrow { display: none; }
+      .cascade-step { flex: 1 1 100%; }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true">✉</span>
+        <span class="brand-text">
+          <strong>Email Cascade</strong>
+          <small>两级级联分类器</small>
+        </span>
+      </div>
+      <a class="docs-link" href="/docs" target="_blank" rel="noreferrer">API 文档 ↗</a>
+    </header>
+
+    <section class="hero">
+      <span class="eyebrow">MLOps Demo · FastAPI + scikit-learn</span>
+      <h1>让每封邮件<br /><span class="grad">找到自己的位置</span></h1>
+
+      <div class="cascade" aria-label="两级级联流程">
+        <div class="cascade-step">
+          <span class="step-index">01</span>
+          <div><strong>邮件输入</strong><small>任意正文</small></div>
+        </div>
+        <span class="cascade-arrow" aria-hidden="true">→</span>
+        <div class="cascade-step">
+          <span class="step-index rose">02</span>
+          <div><strong>垃圾过滤</strong><small>spam · 非 spam</small></div>
+        </div>
+        <span class="cascade-arrow" aria-hidden="true">→</span>
+        <div class="cascade-step">
+          <span class="step-index green">03</span>
+          <div><strong>类别细分</strong><small>work · personal · notification</small></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="field-head">
+        <label for="text">邮件内容</label>
+        <span id="counter" class="counter">0 / 5000</span>
+      </div>
+
+      <textarea
+        id="text"
+        maxlength="5000"
+        spellcheck="false"
+        placeholder="把邮件正文粘贴到这里，例如：&#10;Could you review the Q3 budget spreadsheet before Friday's meeting?"
+      ></textarea>
+
+      <div class="samples" aria-label="示例邮件">
+        <span class="samples-label">试试：</span>
+        <button type="button" class="chip" data-sample="Congratulations! You won a free iPhone. Click the link and claim your prize now!">垃圾邮件</button>
+        <button type="button" class="chip" data-sample="Can you review the Q3 budget spreadsheet before Friday's meeting?">工作邮件</button>
+        <button type="button" class="chip" data-sample="Your package was delivered to the reception desk this afternoon.">通知邮件</button>
+      </div>
+
+      <button id="predict" class="primary" type="button">
+        <span class="spinner" aria-hidden="true"></span>
+        <span class="label">预测</span>
+      </button>
+
+      <p id="error" class="error" role="alert" hidden></p>
+    </section>
+
+    <section id="result" class="result" hidden aria-live="polite">
+      <div class="result-icon" id="result-icon" aria-hidden="true">✉</div>
+      <div class="result-main">
+        <span class="kicker" id="result-kicker">预测结果</span>
+        <h2 id="result-title">普通邮件 · 工作</h2>
+        <p id="result-desc"></p>
+        <code id="result-json"></code>
+      </div>
+    </section>
+
+    <footer class="foot">
+      <span>模型：TF-IDF + LogisticRegression · 两级级联</span>
+      <a href="/health">/health</a>
+    </footer>
+  </main>
+
+  <script>
+    (function () {
+      const textEl = document.getElementById("text");
+      const counter = document.getElementById("counter");
+      const button = document.getElementById("predict");
+      const buttonLabel = button.querySelector(".label");
+      const errorEl = document.getElementById("error");
+      const result = document.getElementById("result");
+      const resultIcon = document.getElementById("result-icon");
+      const resultKicker = document.getElementById("result-kicker");
+      const resultTitle = document.getElementById("result-title");
+      const resultDesc = document.getElementById("result-desc");
+      const resultJson = document.getElementById("result-json");
+
+      const CATEGORY_LABELS = {
+        work: "工作",
+        personal: "私人",
+        notification: "通知",
+      };
+
+      function updateCounter() {
+        counter.textContent = textEl.value.length + " / 5000";
+      }
+
+      function showError(message) {
+        errorEl.textContent = message;
+        errorEl.hidden = false;
+      }
+
+      function clearError() {
+        errorEl.hidden = true;
+        errorEl.textContent = "";
+      }
+
+      function setLoading(loading) {
+        button.disabled = loading;
+        button.classList.toggle("loading", loading);
+        buttonLabel.textContent = loading ? "识别中…" : "预测";
+      }
+
+      function readDetail(payload, status) {
+        const detail = payload && payload.detail;
+        if (Array.isArray(detail)) {
+          return detail.map(function (item) { return item.msg || "输入不合法"; }).join("；");
+        }
+        if (typeof detail === "string") {
+          return detail;
+        }
+        return "请求失败（HTTP " + status + "）";
+      }
+
+      function renderResult(data) {
+        const isSpam = data.is_spam === true;
+        result.classList.toggle("spam", isSpam);
+        result.classList.toggle("normal", !isSpam);
+        result.hidden = false;
+
+        if (isSpam) {
+          resultIcon.textContent = "⛔";
+          resultKicker.textContent = "第一级 · 垃圾邮件模型";
+          resultTitle.textContent = "垃圾邮件";
+          resultDesc.textContent = "已拦截，不再进入第二级分类。";
+        } else {
+          const label = CATEGORY_LABELS[data.category] || data.category;
+          resultIcon.textContent = "✉️";
+          resultKicker.textContent = "第二级 · 普通邮件分类模型";
+          resultTitle.textContent = "普通邮件 · " + label;
+          resultDesc.textContent = "通过垃圾过滤，被判定为「" + label + "」（" + data.category + "）。";
+        }
+
+        resultJson.textContent = JSON.stringify(data);
+        result.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      }
+
+      async function predict() {
+        const text = textEl.value.trim();
+        clearError();
+
+        if (!text) {
+          showError("请先输入邮件内容。");
+          textEl.focus();
+          return;
+        }
+        if (text.length > 5000) {
+          showError("邮件内容不能超过 5000 个字符。");
+          return;
+        }
+
+        setLoading(true);
+        try {
+          const response = await fetch("/predict", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ text: text }),
+          });
+          const payload = await response.json().catch(function () { return {}; });
+          if (!response.ok) {
+            throw new Error(readDetail(payload, response.status));
+          }
+          renderResult(payload);
+        } catch (error) {
+          result.hidden = true;
+          showError(error && error.message ? error.message : "网络异常，请稍后重试。");
+        } finally {
+          setLoading(false);
+        }
+      }
+
+      document.querySelectorAll(".chip").forEach(function (chip) {
+        chip.addEventListener("click", function () {
+          textEl.value = chip.dataset.sample || "";
+          updateCounter();
+          clearError();
+          textEl.focus();
+        });
+      });
+
+      textEl.addEventListener("input", updateCounter);
+      textEl.addEventListener("keydown", function (event) {
+        if ((event.ctrlKey || event.metaKey) && event.key === "Enter") {
+          predict();
+        }
+      });
+      button.addEventListener("click", predict);
+      updateCounter();
+    })();
+  </script>
+</body>
+</html>
