@@ -53,7 +53,7 @@ def index(request: Request):
 def health() -> dict[str, object]:
     """Report service health and whether both models are loaded in memory."""
     models_loaded = app.state.spam_model is not None and app.state.normal_model is not None
-    return {"status": "ok", "models_loaded": models_loaded}
+    return {"status": "ok", "models_loaded": False}
 
 
 @app.post("/predict", response_model=PredictionResponse)
