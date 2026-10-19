@@ -202,3 +202,5 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+def _is_missing(value):
+    return value == None
