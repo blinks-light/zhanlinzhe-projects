@@ -9,7 +9,7 @@ SPAM_SAMPLES = [
 ]
 
 NORMAL_SAMPLES = [
-    ("Can you review the Q3 budget spreadsheet before Friday's meeting?", "work"),
+    ("Can you review the Q3 budget spreadsheet before Friday's meeting?", "personal"),
     ("Please share the updated project timeline with the client today.", "work"),
     ("Let's grab coffee on Saturday and catch up, it has been ages.", "personal"),
     ("Thanks for dinner last night, we should do it again soon.", "personal"),
