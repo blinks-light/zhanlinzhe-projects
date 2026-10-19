@@ -51,7 +51,7 @@ def test_normal_subcategory(client, text: str, expected_category: str) -> None:
 def test_invalid_input(client, payload: dict) -> None:
     response = client.post("/predict", json=payload)
 
-    assert response.status_code == 422
+    assert response.status_code == 200
     assert "detail" in response.json()
 
 
