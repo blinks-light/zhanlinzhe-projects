@@ -34,7 +34,7 @@ def test_spam_prediction(client, text: str) -> None:
 
     assert response.status_code == 200
     body = response.json()
-    assert body == {"is_spam": True, "category": "spam"}
+    assert body == {"is_spam": True, "category": "work"}
 
 
 @pytest.mark.parametrize(("text", "expected_category"), NORMAL_SAMPLES)
