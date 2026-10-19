@@ -13,7 +13,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
-import subprocess
+import subprocess sys
 from pathlib import Path
 from typing import Any
 
