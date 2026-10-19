@@ -27,6 +27,7 @@ reach the second stage, which classifies them as `work`, `personal` or `notifica
 
 | Method | Path      | Request                  | Response |
 |--------|-----------|--------------------------|----------|
+| GET    | `/`       | –                        | demo web page (HTML) |
 | GET    | `/health` | –                        | `{"status": "ok", "models_loaded": true}` |
 | POST   | `/predict`| `{"text": "..."}`        | `{"is_spam": true, "category": "spam"}` |
 
@@ -49,11 +50,16 @@ Invalid input returns HTTP 422; missing models return HTTP 503.
 
 Interactive docs: <http://localhost:8000/docs>.
 
+The browser demo is served at <http://localhost:8000/>: type an email, press **预测**,
+and the page calls `POST /predict` and renders `is_spam` plus the category.
+
 ## Repository layout
 
 ```
 app/                 FastAPI service (entrypoint: app.main:app)
+app/templates/       Jinja2 demo page (index.html)
 tests/               pytest suite with boundary cases
+tests/test_ui.py     checks that the demo page renders
 ml/data_pipeline.py  deterministic synthetic dataset generator (v1 / v2)
 ml/train.py          training + MLflow tracking + model export
 ml/report.py         builds ml/README_experiments.md from the run summaries
@@ -77,6 +83,7 @@ python ml/data_pipeline.py --version v2 --out data/emails.csv
 python ml/train.py --model lr --run-name improved-lr --save-final
 
 uvicorn app.main:app --reload
+# open http://localhost:8000/ for the demo page
 pytest -q
 ruff check .
 ```
@@ -113,7 +120,8 @@ edge cases:
 2. normal emails → the correct `work` / `personal` / `notification` sub-category;
 3. invalid payloads (empty, whitespace-only, oversized, non-string, null, missing field)
    → HTTP 422;
-4. plus a `/health` check that both models are loaded.
+4. plus a `/health` check that both models are loaded;
+5. a page test that `GET /` renders the demo UI (`tests/test_ui.py`).
 
 ```bash
 pytest -q
